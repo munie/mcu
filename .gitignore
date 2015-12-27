@@ -1,0 +1,8 @@
+# .gitignore
+
+.svn/
+bin/
+obj/
+
+*uvgui*
+*uvopt*
