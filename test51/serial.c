@@ -32,7 +32,7 @@ void serial_config(int type)
         TH1 = 0xf3;
     }
     TR1 = 1;
-    
+
     SM0 = 0;
     SM1 = 1;
     REN = 1;
@@ -42,17 +42,17 @@ void serial_config(int type)
 
 void serial_perform()
 {
-    unsigned short i, size, pos;
-    
+    int i, size, pos;
+
     // 没有收到任何数据，直接返回
     if (seri->rfifo_size == seri->rfifo_pos)
         return;
-    
+
     // 性能考虑，不屏蔽ES，所以需记录下当前size。
     // 当前pos无需记录的，不过可以缩短代码
     size = seri->rfifo_size;
     pos = seri->rfifo_pos;
-    
+
     // 如果未找到结束符'\n'，直接返回
     for (i = 0; i < size - pos; i++) {
         if (seri->rfifo[pos+i] == '\n')
@@ -64,7 +64,7 @@ void serial_perform()
             seri->rfifo_size = seri->rfifo_pos = 0;
         return;
     }
-    
+
     // 收到结束符，调用外部函数处理之
     ES = 0;
     if (seri->rfifo_parse)
@@ -83,7 +83,7 @@ void serial_perform()
 void serial_send(char *str)
 {
     char es_bak = ES;
-    
+
     ES = 0;
     TI = 1;
     printf(str);
@@ -95,7 +95,7 @@ void serial_send(char *str)
 void serial_send_char(char c)
 {
     char es_bak = ES;
-    
+
     ES = 0;
     SBUF = c;
     while (TI == 0);
@@ -109,6 +109,6 @@ static void serial_interrupt() interrupt 4
         seri->rfifo[seri->rfifo_size] = SBUF;
         seri->rfifo_size++;
     }
-    
+
     RI = 0;
 }

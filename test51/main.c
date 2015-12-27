@@ -7,8 +7,8 @@
 
 void delay10ms(int count)   //误差 0us
 {
-    unsigned char i, j;
-    
+    int i, j;
+
     //--c已经在传递过来的时候已经赋值了，所以在for语句第一句就不用赋值了--//
     while (--count >= 0) {
         for (i = 0; i < 38; i++) {
@@ -20,8 +20,8 @@ void delay10ms(int count)   //误差 0us
 
 void main_parse(struct serial *sender)
 {
-    unsigned short i;
-    
+    int i;
+
     while (1) {
         for (i = 0; i < sender->rfifo_size - sender->rfifo_pos; i++) {
             if (sender->rfifo[sender->rfifo_pos+i] == '\n')
@@ -43,11 +43,9 @@ int main()
 {
     serial_init(main_parse);
     serial_config(F12B4800);
-    
+
     while (1) {
         serial_perform();
         delay10ms(1);
     }
-    
-    return 0;
 }
