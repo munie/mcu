@@ -88,12 +88,12 @@ static void simcard_usart_parse(struct usart_session *sess)
 
     for (int i = sess->rdata_pos; i < sess->rdata_size; i++) {
         if (memcmp(RFIFOP(sess, i), "!A1?", 4) == 0) {
-            simcard_send_msg_to_center(sim, "/flow/record?ccid=%s&time=%s&flow_total=%s\r\n",
-                sim->ccid, sim->gps_time, sim->flow_total);
+            simcard_send_msg_to_center(sim, "/flow/record?ccid=%s&flow_total=%s&time=%s\r\n",
+                sim->ccid, sim->current_flow_total, sim->current_flow_time);
             break;
         } else if (memcmp(RFIFOP(sess, i), "!A3?", 4) == 0) {
-            simcard_send_msg_to_center(sim, "/flow/state?ccid=%s&csq=%s&voltage=%s&time=%s&gpsn=%s&gpse=%s\r\n",
-                sim->ccid, sim->csq, sim->voltage, sim->gps_time, sim->gps_n, sim->gps_e);
+            simcard_send_msg_to_center(sim, "/flow/state?ccid=%s&csq=%s&voltage=%s&gpsn=%s&gpse=%s&time=%s\r\n",
+                sim->ccid, sim->csq, sim->voltage, sim->gps_n, sim->gps_e, sim->gps_time);
             break;
         }
     }
