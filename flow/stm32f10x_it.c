@@ -173,7 +173,7 @@ void USART1_IRQHandler(void)
 
 void USART3_IRQHandler(void)
 {
-    struct usart_session *sess = ctlcenter->modbus;
+    struct usart_session *sess = ctlcenter->flowmeter;
 
     if(USART3->SR &= USART_FLAG_RXNE) {
         USART3->SR &= ~USART_FLAG_RXNE;// clear interrupt

@@ -2,6 +2,7 @@
 #define _ENVTERM_SIM908_H_
 
 #include "usart.h"
+#include <time.h>
 
 struct simcard {
     struct usart_session sess;
@@ -10,10 +11,11 @@ struct simcard {
     } flag;
     char ccid[20+1];
     char csq[2+1];
-    char voltage[6+1];
-    char gps_time[13];
+    char gps_time[15];
     char gps_speed[11];
-    char gps_temp[32];
+    char gps_n[10];
+    char gps_e[10];
+    char voltage[6+1];
     char flow_total[4+1];
 };
 

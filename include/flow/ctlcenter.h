@@ -7,7 +7,7 @@
 struct ctlcenter {
     int count_tim2;
     struct simcard *sim;
-    struct usart_session *modbus;
+    struct usart_session *flowmeter;
 };
 
 extern void ctlcenter_init(struct ctlcenter *cnter);

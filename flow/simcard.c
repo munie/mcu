@@ -2,21 +2,27 @@
 
 #include "simcard.h"
 #include "delay.h"
-#include "ctlcenter.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdarg.h>
 
+#define CTOI(c) (c - 0x30)
+
 #define PowerH_GPRS  GPIO_SetBits(GPIOC,GPIO_Pin_6)     //高电平
 #define PowerL_GPRS  GPIO_ResetBits(GPIOC,GPIO_Pin_6)   //低电平
 
+// init commands of AT
 #define AT_TEST         "AT\n"
 #define AT_ECHO_CLOSE   "ATE0\n"
 #define AT_POWER_DOWN   "AT+CPOWD=1\n"
+#define AT_GPS_PWR      "AT+CGNSPWR=1\n"        // GPS开电源
 
+// query commands of AT
 #define AT_QUERY_CCID   "AT+CCID\n"
 #define AT_QUERY_CSQ    "AT+CSQ\n"
+#define AT_QUERY_GPS    "AT+CGNSINF\n"
 
+// tcp commands of AT
 #define AT_CG_CLASS     "AT+CGCLASS=\"B\"\n"
 #define AT_CG_DCONT     "AT+CGDCONT=1,\"IP\",\"CMNET\"\n"
 #define AT_CG_ATT       "AT+CGATT=1\n"
@@ -24,8 +30,6 @@
 #define AT_CIP_START    "AT+CIPSTART=\"TCP\",\"zjhtht.cn\",\"3002\"\n"
 //#define AT_CIP_START    "AT+CIPSTART=\"TCP\",\"munie.ddns.net\",\"5964\"\n"
 #define AT_CIP_SEND     "AT+CIPSEND\n"
-
-unsigned char const CGQ_CMD[8]={0x01, 0x03, 0x00, 0x08, 0x00, 0x02, 0x45, 0xC9};
 
 static bool send_command_base(struct usart_session *sess,
     const char * restrict cmd, const char * restrict res, int res_offset)
@@ -58,13 +62,21 @@ static void simcard_open()
     delay(1500);
 }
 
-static void connect(struct simcard *sim, struct usart_session *sess)
+static void connect(struct simcard *sim)
 {
+    struct usart_session *sess = &sim->sess;
     send_command(sess, AT_CG_CLASS, 1000);
     send_command(sess, AT_CG_DCONT, 1000);
     send_command(sess, AT_CG_ATT, 1000);
     send_command(sess, AT_CIP_CSGP, 1000);
     send_command(sess, AT_CIP_START, 5000);
+    usart_rfifo_skip(sess, RFIFOREST(sess));
+}
+
+static void gpsstart(struct simcard *sim)
+{
+    struct usart_session *sess = &sim->sess;
+    send_command(sess, AT_GPS_PWR, 1000);
     usart_rfifo_skip(sess, RFIFOREST(sess));
 }
 
@@ -76,13 +88,12 @@ static void simcard_usart_parse(struct usart_session *sess)
 
     for (int i = sess->rdata_pos; i < sess->rdata_size; i++) {
         if (memcmp(RFIFOP(sess, i), "!A1?", 4) == 0) {
-            memcpy(ctlcenter->modbus->wdata, CGQ_CMD, 8);
-            break;
-        } else if (memcmp(RFIFOP(sess, i), "!A2?", 4) == 0) {
+            simcard_send_msg_to_center(sim, "/flow/record?ccid=%s&time=%s&flow_total=%s\r\n",
+                sim->ccid, sim->gps_time, sim->flow_total);
             break;
         } else if (memcmp(RFIFOP(sess, i), "!A3?", 4) == 0) {
-            simcard_send_msg_to_center(sim, "/flow/state?ccid=%s&csq=%s&voltage=%s\r\n",
-                sim->ccid, sim->csq, sim->voltage);
+            simcard_send_msg_to_center(sim, "/flow/state?ccid=%s&csq=%s&voltage=%s&time=%s&gpsn=%s&gpse=%s\r\n",
+                sim->ccid, sim->csq, sim->voltage, sim->gps_time, sim->gps_n, sim->gps_e);
             break;
         }
     }
@@ -108,6 +119,7 @@ void simcard_init(struct simcard *sim)
 
     out:
     if (simcard_update_ccid(sim) == -1) goto redo;
+    gpsstart(sim);
     return;
 }
 
@@ -128,7 +140,7 @@ void simcard_send_msg_to_center(struct simcard *sim, const char * restrict msg, 
     redo:
     send_command(sess, AT_CIP_SEND, 500);
     if (memcmp(sess->rdata + sess->rdata_size - 9, "\r\nERROR\r\n", 9) == 0) {
-        connect(sim, sess);
+        connect(sim);
         goto redo;
     }
     send_command(sess, sess->wdata, 0);
@@ -138,7 +150,7 @@ void simcard_send_msg_to_center(struct simcard *sim, const char * restrict msg, 
 int simcard_update_ccid(struct simcard *sim)
 {
     struct usart_session *sess = &sim->sess;
-    
+
     // query ccid, retval: "\r\n8986...\r\n"
     send_command(sess, AT_QUERY_CCID, 1000);
     if (strstr(RFIFOP(sess, 2), "8986") == NULL)
@@ -152,12 +164,12 @@ int simcard_update_ccid(struct simcard *sim)
 int simcard_update_csq(struct simcard *sim)
 {
     struct usart_session *sess = &sim->sess;
-    
+
     // query csq, retval: "\r\n+CSQ: 19,0\r\n"
     send_command(sess, AT_QUERY_CSQ, 1000);
     if (strstr(RFIFOP(sess, 2), "+CSQ") == NULL)
         return -1;
-    
+
     memcpy(sim->csq, RFIFOP(sess, 2 + 6), 2);
     usart_rfifo_skip(sess, RFIFOREST(sess));
     return 0;
@@ -165,5 +177,23 @@ int simcard_update_csq(struct simcard *sim)
 
 int simcard_update_gps(struct simcard *sim)
 {
+    struct usart_session *sess = &sim->sess;
+
+    // query gps, retval: "\r\n+CGNSINF: 1,1,20160107070129.000,28.652770,121.446185,5.200,0.06,231.5,1,,3.8,5.7,4.2,,6,5,,,51,,\r\n"
+    send_command(sess, AT_QUERY_GPS, 1000);
+    if (strstr(RFIFOP(sess, 2), "+CGNSINF") == NULL)
+        return -1;
+
+    // fail when received "+CGNSINF: 1,0,19800106000349.000,,,,0.00,0.0,0,,,,,,0,0,,,,,"
+    if (*RFIFOP(sess, 2 + 12) != '1')
+        return -1;
+
+    // copy to memory
+    memcpy(sim->gps_time, RFIFOP(sess, 2 + 14), 14);
+    memcpy(sim->gps_n, RFIFOP(sess, 2 + 33), 9);
+    memcpy(sim->gps_e, RFIFOP(sess, 2 + 43), 9);
+
+    // clear rfifo
+    usart_rfifo_skip(sess, RFIFOREST(sess));
     return 0;
 }
