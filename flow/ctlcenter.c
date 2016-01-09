@@ -13,7 +13,7 @@ struct flow_record {
     char time[15];
 };
 
-#define FLOW_RECORD_MAX 24 * 10
+#define FLOW_RECORD_MAX (24 * 2 * 10)
 static struct flow_record flow_table[FLOW_RECORD_MAX];
 static int flow_size;
 static int flow_pos;
@@ -33,7 +33,7 @@ static void flowmeter_usart_parse(struct usart_session *sess)
         memcpy(_simcard.current_flow_total, RFIFOP(sess, 3), 4);
         memcpy(_simcard.current_flow_time, _simcard.gps_time, 15);
 
-        // store record to record table
+        // store record to flow record table
         if (flow_size - flow_pos != FLOW_RECORD_MAX && flow_size - flow_pos != -1) {
             memcpy(flow_table[flow_size].total, _simcard.current_flow_total, 4);
             memcpy(flow_table[flow_size].time, _simcard.current_flow_time, 15);
@@ -74,17 +74,18 @@ void ctlcenter_perform(struct ctlcenter *cnter, int next)
 
     // 30 mins : send flow record
     else if (cnter->count_tim2 % 1800 == 180) {
+        // CAUTION! maybe loop endlessly
         while (flow_size != flow_pos) {
             // send flow record
             simcard_send_msg_to_center(cnter->sim, "/flow/record?ccid=%s&flow_total=%s&time=%s\r\n",
                     cnter->sim->ccid, flow_table[flow_pos].total, flow_table[flow_pos].time);
 
-            // return if not received *OK#
+            // return if not received *OK# in 10 sec
             delay(10000);
             if (strstr(RFIFOP((&cnter->sim->sess), 0), "*OK#") == NULL)
                 break;
 
-            // update record_pos
+            // update flow_pos
             if (++flow_pos == FLOW_RECORD_MAX) flow_pos = 0;
         }
 
