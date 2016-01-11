@@ -23,7 +23,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h"
-#include "ctlcenter.h"
+#include "core.h"
 #include "watchdog.h"
 
 /** @addtogroup STM32F10x_StdPeriph_Template
@@ -159,7 +159,7 @@ void SysTick_Handler(void)
   */ 
 void USART1_IRQHandler(void)
 {
-    struct usart_session *sess = &ctlcenter->sim->sess;
+    struct usart_session *sess = &core->sim->sess;
 
     if(USART1->SR &= USART_FLAG_RXNE) {
         USART1->SR &= ~USART_FLAG_RXNE;// clear interrupt
@@ -173,7 +173,7 @@ void USART1_IRQHandler(void)
 
 void USART3_IRQHandler(void)
 {
-    struct usart_session *sess = ctlcenter->flowmeter;
+    struct usart_session *sess = core->flowmeter;
 
     if(USART3->SR &= USART_FLAG_RXNE) {
         USART3->SR &= ~USART_FLAG_RXNE;// clear interrupt
@@ -190,7 +190,7 @@ void TIM2_IRQHandler(void)
     if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET) {
         //必须清空标志位/ /
         TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
-        ctlcenter->count_tim2++;
+        core->count_tim2++;
         watchdog_feed();
     }
 }

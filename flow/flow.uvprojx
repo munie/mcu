@@ -512,9 +512,9 @@
               <FilePath>.\usart.c</FilePath>
             </File>
             <File>
-              <FileName>ctlcenter.c</FileName>
+              <FileName>core.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\ctlcenter.c</FilePath>
+              <FilePath>.\core.c</FilePath>
             </File>
             <File>
               <FileName>simcard.c</FileName>

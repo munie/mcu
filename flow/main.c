@@ -1,6 +1,6 @@
 // main.c
 
-#include "ctlcenter.h"
+#include "core.h"
 #include "watchdog.h"
 #include "stm32f10x.h"
 
@@ -264,6 +264,6 @@ int main(void)
     gpio_config();
     watchdog_init(4, 6250);
 
-    ctlcenter_init(ctlcenter);
-    while (1) ctlcenter_perform(ctlcenter, 0);
+    core_init(core);
+    while (1) core_perform(core, 0);
 }

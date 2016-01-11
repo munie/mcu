@@ -1,6 +1,6 @@
-// ctlcenter.c
+// core.c
 
-#include "ctlcenter.h"
+#include "core.h"
 #include "delay.h"
 #include <stdio.h>
 
@@ -18,10 +18,10 @@ static struct flow_record flow_table[FLOW_RECORD_MAX];
 static int flow_size;
 static int flow_pos;
 
-// ctlcenter ===================================================================
+// core ===================================================================
 
-static struct ctlcenter _ctlcenter;
-struct ctlcenter *ctlcenter = &_ctlcenter;
+static struct core _core;
+struct core *core = &_core;
 static struct simcard _simcard;
 static struct usart_session _flowmeter;
 
@@ -44,51 +44,51 @@ static void flowmeter_usart_parse(struct usart_session *sess)
     usart_rfifo_skip(sess, RFIFOREST(sess));
 }
 
-void ctlcenter_init(struct ctlcenter *cnter)
+void core_init(struct core *core)
 {
-    cnter->sim = &_simcard;
-    simcard_init(cnter->sim);
+    core->sim = &_simcard;
+    simcard_init(core->sim);
 
-    cnter->flowmeter = &_flowmeter;
-    usart_init(cnter->flowmeter, USART3, flowmeter_usart_parse);
-    usart_add(cnter->flowmeter);
+    core->flowmeter = &_flowmeter;
+    usart_init(core->flowmeter, USART3, flowmeter_usart_parse);
+    usart_add(core->flowmeter);
 }
 
-void ctlcenter_final(struct ctlcenter *cnter) { }
+void core_final(struct core *cnter) { }
 
-void ctlcenter_perform(struct ctlcenter *cnter, int next)
+void core_perform(struct core *core, int next)
 {
     usart_perform(0);
 
     // 2 mins : update csq & gps
-    if (cnter->count_tim2 % 120 == 45) {
-        simcard_update_csq(cnter->sim);
-        simcard_update_gps(cnter->sim);
+    if (core->count_tim2 % 120 == 45) {
+        simcard_update_csq(core->sim);
+        simcard_update_gps(core->sim);
 
     // 10 mins : send alive packet
-    } else if (cnter->count_tim2 % 600 == 60)
-        simcard_send_msg_to_center(cnter->sim, "/flow/alive?ccid=%s\r\n", cnter->sim->ccid);
+    } else if (core->count_tim2 % 600 == 60)
+        simcard_send_msg_to_center(core->sim, "/flow/alive?ccid=%s\r\n", core->sim->ccid);
 
     // 30 mins : send command to flowmeter to get flow data
-    else if (cnter->count_tim2 % 1800 == 120) {
+    else if (core->count_tim2 % 1800 == 120) {
         //memcpy(cnter->flowmeter->wdata, CGQ_CMD, 8);
         //cnter->flowmeter->wdata_size = 8;
         GPIO_SetBits(GPIOB,GPIO_Pin_5);
-        usart_send_session(cnter->flowmeter, CGQ_CMD, 8);
+        usart_send_session(core->flowmeter, CGQ_CMD, 8);
         GPIO_ResetBits(GPIOB,GPIO_Pin_5);
         delay(1000);
 
     // 30 mins : send flow record
-    } else if (cnter->count_tim2 % 1800 == 180) {
+    } else if (core->count_tim2 % 1800 == 180) {
         // CAUTION! maybe loop endlessly
         while (flow_size != flow_pos) {
             // send flow record
-            simcard_send_msg_to_center(cnter->sim, "/flow/record?ccid=%s&flow_total=%s&time=%s\r\n",
-                cnter->sim->ccid, flow_table[flow_pos].total, flow_table[flow_pos].time);
+            simcard_send_msg_to_center(core->sim, "/flow/record?ccid=%s&flow_total=%s&time=%s\r\n",
+                core->sim->ccid, flow_table[flow_pos].total, flow_table[flow_pos].time);
 
             // return if not received *OK# in 10 sec
             delay(10000);
-            if (strstr(RFIFOP((&cnter->sim->sess), 0), "*OK#") == NULL)
+            if (strstr(RFIFOP((&core->sim->sess), 0), "*OK#") == NULL)
                 break;
 
             // update flow_pos
@@ -96,6 +96,6 @@ void ctlcenter_perform(struct ctlcenter *cnter, int next)
         }
 
     // 60 mins : reset
-    } else if (cnter->count_tim2 >= 3600)
-        cnter->count_tim2 = 0;
+    } else if (core->count_tim2 >= 3600)
+        core->count_tim2 = 0;
 }
