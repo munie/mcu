@@ -1,5 +1,5 @@
-#ifndef _ENVTERM_SIM908_H_
-#define _ENVTERM_SIM908_H_
+#ifndef _FLOW_SIMCARD_H_
+#define _FLOW_SIMCARD_H_
 
 #include "usart.h"
 

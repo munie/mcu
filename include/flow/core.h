@@ -1,5 +1,5 @@
-#ifndef _ENVTERM_CORE_H_
-#define _ENVTERM_CORE_H_
+#ifndef _FLOW_CORE_H_
+#define _FLOW_CORE_H_
 
 #include "usart.h"
 #include "simcard.h"

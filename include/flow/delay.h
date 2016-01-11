@@ -1,5 +1,5 @@
-#ifndef _ENVTERM_DELAY_H_
-#define _ENVTERM_DELAY_H_
+#ifndef _FLOW_DELAY_H_
+#define _FLOW_DELAY_H_
 
 static inline void delay(int next)
 {

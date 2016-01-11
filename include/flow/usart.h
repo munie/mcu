@@ -1,5 +1,5 @@
-#ifndef _ENVTERM_USART_H_
-#define _ENVTERM_USART_H_
+#ifndef _FLOW_USART_H_
+#define _FLOW_USART_H_
 
 #include "stm32f10x.h"
 #include <stddef.h>

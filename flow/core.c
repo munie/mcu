@@ -44,20 +44,8 @@ static void flowmeter_usart_parse(struct usart_session *sess)
     usart_rfifo_skip(sess, RFIFOREST(sess));
 }
 
-void core_init(struct core *core)
+static void check_timer(struct core *core)
 {
-    core->sim = &_simcard;
-    simcard_init(core->sim);
-
-    core->flowmeter = &_flowmeter;
-    usart_init(core->flowmeter, USART3, NULL, 0, flowmeter_usart_parse);
-    usart_add(core->flowmeter);
-}
-
-void core_perform(struct core *core)
-{
-    usart_perform();
-
     // 2 mins : update csq & gps
     if (core->count_tim2 % 120 == 45) {
         simcard_update_csq(core->sim);
@@ -93,4 +81,20 @@ void core_perform(struct core *core)
     // 60 mins : reset
     } else if (core->count_tim2 >= 3600)
         core->count_tim2 = 0;
+}
+
+void core_init(struct core *core)
+{
+    core->sim = &_simcard;
+    simcard_init(core->sim);
+
+    core->flowmeter = &_flowmeter;
+    usart_init(core->flowmeter, USART3, NULL, 0, flowmeter_usart_parse);
+    usart_add(core->flowmeter);
+}
+
+void core_perform(struct core *core)
+{
+    usart_perform();
+    check_timer(core);
 }
