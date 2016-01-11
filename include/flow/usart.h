@@ -29,6 +29,7 @@ struct usart_session {
 extern void usart_rfifo_skip(struct usart_session *sess, size_t len);
 extern void usart_rfifo_flush(struct usart_session *sess);
 extern void usart_sendstr_session(struct usart_session *sess, const char * restrict data);
+extern void usart_send_session(struct usart_session *sess, const unsigned char * restrict data, size_t len);
 
 extern void usart_init(struct usart_session *sess, USART_TypeDef *usart, usart_parse_t parse);
 extern int usart_add(struct usart_session *sess);

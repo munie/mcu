@@ -10,13 +10,12 @@ struct simcard {
     } flag;
     char ccid[20+1];
     char csq[2+1];
-    char gps_n[10];
-    char gps_e[10];
-    char gps_speed[11];
-    char gps_time[15];
+    char gps_n[9+1];
+    char gps_e[9+1];
+    char gps_time[14+1];
     char voltage[6+1];
-    char current_flow_total[4+1];
-    char current_flow_time[15];
+    char current_flow_total[8+1];
+    char current_flow_time[14+1];
 };
 
 extern void simcard_init(struct simcard *sim);

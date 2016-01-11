@@ -110,7 +110,7 @@ static void usart2_config(void)
 
     /* Configure USART2 Tx (PA.02) as alternate function push-pull */
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;                   //PA9-TX1 PA2-TX2引脚
-    GPIO_InitStructure.GPIO_Speed =	GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;             //复用推挽输出
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 
@@ -142,12 +142,12 @@ static void usart3_config(void)
     GPIO_Init(GPIOB, &GPIO_InitStructure);
     /* Configure USART3 Tx (PB.10) as alternate function push-pull */
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10; //PB10 
-    GPIO_InitStructure.GPIO_Speed =	GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;             //复用推挽输出
     GPIO_Init(GPIOB, &GPIO_InitStructure);
     // RS485控制脚DE/RE (PB.5)
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;                   //PB5引脚(输入输出控制脚)
-    GPIO_InitStructure.GPIO_Speed =	GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;            //复用推挽输出
     GPIO_Init(GPIOB, &GPIO_InitStructure);
 
@@ -185,7 +185,7 @@ static void usart4_config(void)
     // RS485_2控制脚DE/RE (PC.13)
     USART_DeInit(UART4);
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;          // PC13引脚(输入输出控制脚)
-    GPIO_InitStructure.GPIO_Speed =	GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;    // 复用推挽输出
     GPIO_Init(GPIOC, &GPIO_InitStructure);
 

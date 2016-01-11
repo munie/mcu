@@ -10,6 +10,7 @@ static void sendchar(USART_TypeDef* usart, const char c)
     while (!(usart->SR & USART_FLAG_TXE)) { }
     usart->DR = c;
     usart->SR &= ~USART_FLAG_TXE;
+    while(USART_GetFlagStatus(usart, USART_FLAG_TC) != SET);
 }
 
 static void usart_send(struct usart_session *sess)
@@ -36,6 +37,12 @@ void usart_rfifo_flush(struct usart_session *sess)
         memmove(sess->rdata, sess->rdata+sess->rdata_pos, sess->rdata_size);
         sess->rdata_pos = 0;
     }
+}
+
+void usart_send_session(struct usart_session *sess, const unsigned char * restrict data, size_t len)
+{
+    for (int i = 0; i < len; i++)
+        sendchar(sess->usart, data[i]);
 }
 
 void usart_sendstr_session(struct usart_session *sess, const char * restrict data)
@@ -85,7 +92,7 @@ void usart_perform(int next)
         if (usart_table[i] == NULL)
             continue;
         
-        if (usart_table[i]->rdata_size != 0) {
+        if (RFIFOREST(usart_table[i]) > 0) {
             delay(200);
             if (usart_table[i]->usart_parse != NULL)
                 usart_table[i]->usart_parse(usart_table[i]);
