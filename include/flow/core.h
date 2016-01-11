@@ -11,8 +11,7 @@ struct core {
 };
 
 extern void core_init(struct core *core);
-extern void core_final(struct core *core);
-extern void core_perform(struct core *core, int next);
+extern void core_perform(struct core *core);
 
 extern struct core *core;
 

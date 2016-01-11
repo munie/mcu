@@ -95,7 +95,7 @@ static void usart1_config(void)
     USART_Cmd(USART1, ENABLE);                                  //启动串口
 }
 
-static void usart2_config(void)
+/*static*/ void usart2_config(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
     USART_InitTypeDef USART_InitStructure;
@@ -165,7 +165,7 @@ static void usart3_config(void)
     USART_Cmd(USART3, ENABLE);                                  //启动串口3
 }
 
-static void usart4_config(void)
+/*static*/ void usart4_config(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
     USART_InitTypeDef USART_InitStructure;
@@ -219,7 +219,7 @@ static void tim2_config(void)
     TIM_Cmd(TIM2, ENABLE);
 }
 
-static void tim3_config(void)
+/*static*/ void tim3_config(void)
 {
     TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
 
@@ -265,5 +265,5 @@ int main(void)
     watchdog_init(4, 6250);
 
     core_init(core);
-    while (1) core_perform(core, 0);
+    while (1) core_perform(core);
 }

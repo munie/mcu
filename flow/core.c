@@ -50,15 +50,13 @@ void core_init(struct core *core)
     simcard_init(core->sim);
 
     core->flowmeter = &_flowmeter;
-    usart_init(core->flowmeter, USART3, flowmeter_usart_parse);
+    usart_init(core->flowmeter, USART3, NULL, 0, flowmeter_usart_parse);
     usart_add(core->flowmeter);
 }
 
-void core_final(struct core *cnter) { }
-
-void core_perform(struct core *core, int next)
+void core_perform(struct core *core)
 {
-    usart_perform(0);
+    usart_perform();
 
     // 2 mins : update csq & gps
     if (core->count_tim2 % 120 == 45) {
@@ -71,11 +69,8 @@ void core_perform(struct core *core, int next)
 
     // 30 mins : send command to flowmeter to get flow data
     else if (core->count_tim2 % 1800 == 120) {
-        //memcpy(cnter->flowmeter->wdata, CGQ_CMD, 8);
-        //cnter->flowmeter->wdata_size = 8;
-        GPIO_SetBits(GPIOB,GPIO_Pin_5);
-        usart_send_session(core->flowmeter, CGQ_CMD, 8);
-        GPIO_ResetBits(GPIOB,GPIO_Pin_5);
+        memcpy(core->flowmeter->wdata, CGQ_CMD, 8);
+        WFIFOSET(core->flowmeter, 8);
         delay(1000);
 
     // 30 mins : send flow record

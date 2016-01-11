@@ -55,9 +55,12 @@ void usart_sendstr_session(struct usart_session *sess, const char * restrict dat
 
 static struct usart_session *usart_table[USART_SESSION_MAX];
 
-void usart_init(struct usart_session *sess, USART_TypeDef *usart, usart_parse_t parse)
+void usart_init(struct usart_session *sess, USART_TypeDef *usart,
+    GPIO_TypeDef *io, uint16_t pin, usart_parse_t parse)
 {
     sess->usart = usart;
+    sess->ctrl_io = io;
+    sess->ctrl_pin = pin;
     sess->rdata_size = 0;
     sess->rdata_pos = 0;
     sess->wdata_size = 0;
@@ -86,7 +89,7 @@ void usart_del(struct usart_session *sess)
     }
 }
 
-void usart_perform(int next)
+void usart_perform()
 {
     for (int i = 0; i < USART_SESSION_MAX; i++) {
         if (usart_table[i] == NULL)
@@ -101,7 +104,13 @@ void usart_perform(int next)
         }
 
         if (usart_table[i]->wdata_size != 0) {
-            usart_send(usart_table[i]);
+            if (usart_table[i]->ctrl_io == NULL)
+                usart_send(usart_table[i]);
+            else {
+                GPIO_SetBits(usart_table[i]->ctrl_io, usart_table[i]->ctrl_pin);
+                usart_send(usart_table[i]);
+                GPIO_ResetBits(usart_table[i]->ctrl_io, usart_table[i]->ctrl_pin);
+            }
             usart_table[i]->wdata_size = 0;
         }
     }

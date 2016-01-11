@@ -103,7 +103,7 @@ static void simcard_usart_parse(struct usart_session *sess)
 
 void simcard_init(struct simcard *sim)
 {
-    usart_init(&sim->sess, USART1, simcard_usart_parse);
+    usart_init(&sim->sess, USART1, GPIOB, GPIO_Pin_5, simcard_usart_parse);
     usart_add(&sim->sess);
     struct usart_session *sess = &sim->sess;
 
