@@ -90,7 +90,7 @@ static void simcard_usart_parse(struct usart_session *sess)
                 sim->ccid, sim->current_flow_total, sim->current_flow_time);
             break;
         } else if (memcmp(RFIFOP(sess, i), "!A3?", 4) == 0) {
-            simcard_send_msg_to_center(sim, "/flow/state?ccid=%s&csq=%s&voltage=%s&gpsn=%s&gpse=%s&time=%s\r\n",
+            simcard_send_msg_to_center(sim, "/flow/state?ccid=%s&csq=%s&voltage=%s&gpsn=%s&gpse=%s&gpstime=%s\r\n",
                 sim->ccid, sim->csq, sim->voltage, sim->gps_n, sim->gps_e, sim->gps_time);
             break;
         }

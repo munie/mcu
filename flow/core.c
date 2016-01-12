@@ -33,9 +33,11 @@ static void flowmeter_usart_parse(struct usart_session *sess)
         // update current flow_total & flow_time in simcard
         sprintf(_simcard.current_flow_total, "%.2X%.2X%.2X%.2X", *RFIFOP(sess, 3),
             *RFIFOP(sess, 4), *RFIFOP(sess, 5), *RFIFOP(sess, 6));
-        memcpy(_simcard.current_flow_time, _simcard.gps_time, 14);
-        gpstime_add_eight_hours(_simcard.current_flow_time);
-        gpstime_to_normal(_simcard.current_flow_time, 19, _simcard.gps_time);
+
+        char tmp[19+1] = {0};
+        memcpy(tmp, _simcard.gps_time, 14);
+        gpstime_add_eight_hours(tmp);
+        gpstime_to_normal(_simcard.current_flow_time, 19, tmp, 14);
 
         // store record to flow record table
         if (flow_size - flow_pos != FLOW_RECORD_MAX && flow_size - flow_pos != -1) {

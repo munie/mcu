@@ -6,19 +6,20 @@
 #define CTOI(c) (c - 0x30)
 #define ITOC(c) (c + 0x30)
 
-void gpstime_to_normal(char * restrict normal, unsigned int size, char const * gpstime)
+void gpstime_to_normal(char * restrict normal, unsigned int normal_size,
+    char const * gpstime, unsigned int gpstime_size)
 {
     // 2016-02-29 16:06:01
-    for (int i = 0, j = 0; i < size && j < size; i++, j++) {
+    for (int i = 0, j = 0; i < gpstime_size && j < normal_size; i++, j++) {
         if (j == 4 || j == 7) {
             normal[j] = '-';
-            if (++j == size) break;
+            if (++j == normal_size) break;
         } else if (j == 10) {
             normal[j] = ' ';
-            if (++j == size) break;
+            if (++j == normal_size) break;
         } else if (j == 13 || j == 16) {
             normal[j] = ':';
-            if (++j == size) break;
+            if (++j == normal_size) break;
         }
         normal[j] = gpstime[i];
     }
