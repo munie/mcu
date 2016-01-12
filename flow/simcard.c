@@ -91,7 +91,7 @@ static void simcard_usart_parse(struct usart_session *sess)
             break;
         } else if (memcmp(RFIFOP(sess, i), "!A3?", 4) == 0) {
             simcard_send_msg_to_center(sim, "/flow/state?ccid=%s&csq=%s&voltage=%s&gpsn=%s&gpse=%s&gpstime=%s\r\n",
-                sim->ccid, sim->csq, sim->voltage, sim->gps_n, sim->gps_e, sim->gps_time);
+                sim->ccid, sim->csq, sim->voltage, sim->gpsn, sim->gpse, sim->gpstime);
             break;
         }
     }
@@ -154,7 +154,7 @@ int simcard_update_ccid(struct simcard *sim)
     if (strstr(RFIFOP(sess, 2), "8986") == NULL)
         return -1;
 
-    memcpy(sim->ccid, RFIFOP(sess, 2), 20);
+    memcpy(sim->ccid, RFIFOP(sess, 2), CCID_LEN);
     usart_rfifo_skip(sess, RFIFOREST(sess));
     return 0;
 }
@@ -168,7 +168,7 @@ int simcard_update_csq(struct simcard *sim)
     if (strstr(RFIFOP(sess, 2), "+CSQ") == NULL)
         return -1;
 
-    memcpy(sim->csq, RFIFOP(sess, 2 + 6), 2);
+    memcpy(sim->csq, RFIFOP(sess, 2 + 6), CSQ_LEN);
     usart_rfifo_skip(sess, RFIFOREST(sess));
     return 0;
 }
@@ -187,9 +187,9 @@ int simcard_update_gps(struct simcard *sim)
         return -1;
 
     // copy to memory
-    memcpy(sim->gps_time, RFIFOP(sess, 2 + 14), 14);
-    memcpy(sim->gps_n, RFIFOP(sess, 2 + 33), 9);
-    memcpy(sim->gps_e, RFIFOP(sess, 2 + 43), 9);
+    memcpy(sim->gpstime, RFIFOP(sess, 2 + 14), GPSTIME_LEN);
+    memcpy(sim->gpsn, RFIFOP(sess, 2 + 33), GPSN_LEN);
+    memcpy(sim->gpse, RFIFOP(sess, 2 + 43), GPSE_LEN);
 
     // clear rfifo
     usart_rfifo_skip(sess, RFIFOREST(sess));

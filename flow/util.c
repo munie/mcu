@@ -2,49 +2,41 @@
 
 #include <stdbool.h>
 #include <time.h>
+#include <stdio.h>
 
 #define CTOI(c) (c - 0x30)
 #define ITOC(c) (c + 0x30)
 
-void gpstime_to_normal(char * restrict normal, unsigned int normal_size,
-    char const * gpstime, unsigned int gpstime_size)
+int time_parse_gpstime(struct tm * restrict tm, char const *time, size_t len)
 {
-    // 2016-02-29 16:06:01
-    for (int i = 0, j = 0; i < gpstime_size && j < normal_size; i++, j++) {
-        if (j == 4 || j == 7) {
-            normal[j] = '-';
-            if (++j == normal_size) break;
-        } else if (j == 10) {
-            normal[j] = ' ';
-            if (++j == normal_size) break;
-        } else if (j == 13 || j == 16) {
-            normal[j] = ':';
-            if (++j == normal_size) break;
-        }
-        normal[j] = gpstime[i];
-    }
-}
+    if (len < 14) return -1;
 
-void gpstime_add_eight_hours(char * restrict time)
-{
     // 0 ~ 3 : year
     // 4 ~ 5 : mon
     // 6 ~ 7 : day
     // 8 ~ 9 : hour
     // 10 ~ 11 : min
     // 12 ~ 13 : sec
-    // 20160229160601 => 20160301000601
+    // 20160229160601
+    tm->tm_sec = CTOI(time[12]) * 10 + CTOI(time[13]);
+    tm->tm_min = CTOI(time[10]) * 10 + CTOI(time[11]);
+    tm->tm_hour = CTOI(time[8]) * 10 + CTOI(time[9]);
+    tm->tm_mday = CTOI(time[6]) * 10 + CTOI(time[7]);
+    tm->tm_mon = CTOI(time[4]) * 10 + CTOI(time[5]) - 1;
+    tm->tm_year = CTOI(time[0]) * 1000 + CTOI(time[1]) * 100 + CTOI(time[2]) * 10 + CTOI(time[3]);
 
-    int year, mon, day, hour;//, min, sec;
+    return 0;
+}
+
+void time_add_hours(struct tm * restrict tm, int hours)
+{
+    int hour, day, mon, year;
     bool isLeapYear = false;
 
-    year = CTOI(time[0]) * 1000 + CTOI(time[1]) * 100 + CTOI(time[2]) * 10 + CTOI(time[3]);
-    mon = CTOI(time[4]) * 10 + CTOI(time[5]);
-    day = CTOI(time[6]) * 10 + CTOI(time[7]);
-    hour = CTOI(time[8]) * 10 + CTOI(time[9]) + 8;
-    //min = CTOI(time[10]) * 10 + CTOI(time[11]);
-    //sec = CTOI(time[12]) * 10 + CTOI(time[13]);
-
+    hour = tm->tm_hour + hours;
+    day = tm->tm_mday;
+    mon = tm->tm_mon + 1;
+    year = tm->tm_year + 1900;
     if((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) isLeapYear = true;
 
     if (hour >= 24) {
@@ -79,19 +71,15 @@ void gpstime_add_eight_hours(char * restrict time)
         year++;
     }
 
-    time[0] = ITOC(year / 1000 % 10);
-    time[1] = ITOC(year / 100 % 10);
-    time[2] = ITOC(year / 10 % 10);
-    time[3] = ITOC(year % 10);
-    time[4] = ITOC(mon / 10);
-    time[5] = ITOC(mon % 10);
-    time[6] = ITOC(day / 10);
-    time[7] = ITOC(day % 10);
-    time[8] = ITOC(hour / 10);
-    time[9] = ITOC(hour % 10);
+    tm->tm_hour = hour;
+    tm->tm_mday = day;
+    tm->tm_mon = mon - 1;
+    tm->tm_year = year - 1900;
 }
 
-void chinese_time_add_eight_hours(char * restrict time)
+void time_to_string_cn(const struct tm *tm, char * restrict dest, size_t size)
 {
-    // 2016-02-29 16:06:01 => 2016-03-01 00:06:01
+    snprintf(dest, size, "%d-%d-%d %d:%d:%d",
+        tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+        tm->tm_hour, tm->tm_min, tm->tm_sec);
 }

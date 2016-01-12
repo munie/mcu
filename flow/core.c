@@ -10,8 +10,8 @@ unsigned char const CGQ_CMD[8]={0x01, 0x03, 0x00, 0x08, 0x00, 0x02, 0x45, 0xC9};
 // flow record table ===========================================================
 
 struct flow_record {
-    char total[8+1];
-    char time[19+1];
+    char total[CURRENT_FLOW_TOTAL_LEN + 1];
+    char time[CURRENT_FLOW_TOTAL_LEN + 1];
 };
 
 #define FLOW_RECORD_MAX (24 * 2 * 10)
@@ -30,19 +30,20 @@ static void flowmeter_usart_parse(struct usart_session *sess)
 {
     if(*RFIFOP(sess, 0) == 0x01 && *RFIFOP(sess, 1) == 0x03
         && *RFIFOP(sess, 2) == 0x04 && *(unsigned char*)RFIFOP(sess, 9) == 0xff) {
-        // update current flow_total & flow_time in simcard
+        // update current flow total
         sprintf(_simcard.current_flow_total, "%.2X%.2X%.2X%.2X", *RFIFOP(sess, 3),
             *RFIFOP(sess, 4), *RFIFOP(sess, 5), *RFIFOP(sess, 6));
 
-        char tmp[19+1] = {0};
-        memcpy(tmp, _simcard.gps_time, 14);
-        gpstime_add_eight_hours(tmp);
-        gpstime_to_normal(_simcard.current_flow_time, 19, tmp, 14);
+        // update current flow time
+        struct tm tm = {0};
+        time_parse_gpstime(&tm, _simcard.gpstime, GPSTIME_LEN);
+        time_add_hours(&tm, 8);
+        time_to_string_cn(&tm, _simcard.current_flow_time, CURRENT_FLOW_TIME_LEN);
 
         // store record to flow record table
         if (flow_size - flow_pos != FLOW_RECORD_MAX && flow_size - flow_pos != -1) {
-            memcpy(flow_table[flow_size].total, _simcard.current_flow_total, 8);
-            memcpy(flow_table[flow_size].time, _simcard.current_flow_time, 19);
+            memcpy(flow_table[flow_size].total, _simcard.current_flow_total, CURRENT_FLOW_TOTAL_LEN);
+            memcpy(flow_table[flow_size].time, _simcard.current_flow_time, CURRENT_FLOW_TOTAL_LEN);
             if (++flow_size == FLOW_RECORD_MAX) flow_size = 0;
         }
     }
@@ -63,8 +64,8 @@ static void check_timer(struct core *core)
 
     // 30 mins : send command to flowmeter to get flow data
     } else if (core->count_tim2 % 1800 == 120) {
-        memcpy(core->flowmeter->wdata, CGQ_CMD, 8);
-        WFIFOSET(core->flowmeter, 8);
+        memcpy(core->flowmeter->wdata, CGQ_CMD, sizeof CGQ_CMD);
+        WFIFOSET(core->flowmeter, sizeof CGQ_CMD);
         delay(1000);
 
     // 30 mins : send flow record
@@ -73,7 +74,7 @@ static void check_timer(struct core *core)
         while (flow_size != flow_pos) {
             // send flow record
             simcard_send_msg_to_center(core->sim, "/flow/record?ccid=%s&csq=%s&voltage=%s&gpsn=%s&gpse=%s&flow_total=%s&time=%s&pos=%d-%d&response=*OK#\r\n",
-                core->sim->ccid, core->sim->csq, core->sim->voltage, core->sim->gps_n, core->sim->gps_e,
+                core->sim->ccid, core->sim->csq, core->sim->voltage, core->sim->gpsn, core->sim->gpse,
                 flow_table[flow_pos].total, flow_table[flow_pos].time, flow_pos, flow_size);
 
             // return if not received *OK# in 10 sec
