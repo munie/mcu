@@ -15,7 +15,7 @@ struct simcard {
     char gps_time[14+1];
     char voltage[6+1];
     char current_flow_total[8+1];
-    char current_flow_time[14+1];
+    char current_flow_time[19+1];
 };
 
 extern void simcard_init(struct simcard *sim);

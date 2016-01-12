@@ -6,8 +6,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#define CTOI(c) (c - 0x30)
-
 #define PowerH_GPRS  GPIO_SetBits(GPIOC,GPIO_Pin_6)     //高电平
 #define PowerL_GPRS  GPIO_ResetBits(GPIOC,GPIO_Pin_6)   //低电平
 
@@ -103,7 +101,7 @@ static void simcard_usart_parse(struct usart_session *sess)
 
 void simcard_init(struct simcard *sim)
 {
-    usart_init(&sim->sess, USART1, GPIOB, GPIO_Pin_5, simcard_usart_parse);
+    usart_init(&sim->sess, USART1, NULL, 0, simcard_usart_parse);
     usart_add(&sim->sess);
     struct usart_session *sess = &sim->sess;
 
