@@ -173,7 +173,7 @@ void USART1_IRQHandler(void)
 
 void USART3_IRQHandler(void)
 {
-    struct usart_session *sess = core->flowmeter;
+    struct usart_session *sess = &core->meter->sess;
 
     if(USART3->SR &= USART_FLAG_RXNE) {
         USART3->SR &= ~USART_FLAG_RXNE;// clear interrupt

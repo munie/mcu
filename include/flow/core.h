@@ -3,11 +3,12 @@
 
 #include "usart.h"
 #include "simcard.h"
+#include "flowmeter.h"
 
 struct core {
     int count_tim2;
     struct simcard *sim;
-    struct usart_session *flowmeter;
+    struct flowmeter *meter;
 };
 
 extern void core_init(struct core *core);

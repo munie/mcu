@@ -522,6 +522,11 @@
               <FilePath>.\simcard.c</FilePath>
             </File>
             <File>
+              <FileName>flowmeter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\flowmeter.c</FilePath>
+            </File>
+            <File>
               <FileName>watchdog.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\watchdog.c</FilePath>

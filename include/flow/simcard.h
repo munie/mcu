@@ -9,8 +9,6 @@
 #define GPSE_LEN 9
 #define GPSTIME_LEN 14
 #define VOLTAGE_LEN 6
-#define CURRENT_FLOW_TOTAL_LEN 8
-#define CURRENT_FLOW_TIME_LEN 19
 
 struct simcard {
     struct usart_session sess;
@@ -23,8 +21,6 @@ struct simcard {
     char gpse[GPSE_LEN + 1];
     char gpstime[GPSTIME_LEN + 1];
     char voltage[VOLTAGE_LEN + 1];
-    char current_flow_total[CURRENT_FLOW_TOTAL_LEN + 1];
-    char current_flow_time[CURRENT_FLOW_TIME_LEN + 1];
 };
 
 extern void simcard_init(struct simcard *sim);
