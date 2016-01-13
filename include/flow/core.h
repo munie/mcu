@@ -14,6 +14,6 @@ struct core {
 extern void core_init(struct core *core);
 extern void core_perform(struct core *core);
 
-extern struct core *core;
+extern struct core *the_core;
 
 #endif

@@ -159,7 +159,7 @@ void SysTick_Handler(void)
   */ 
 void USART1_IRQHandler(void)
 {
-    struct usart_session *sess = &core->sim->sess;
+    struct usart_session *sess = &the_core->sim->sess;
 
     if(USART1->SR &= USART_FLAG_RXNE) {
         USART1->SR &= ~USART_FLAG_RXNE;// clear interrupt
@@ -173,7 +173,7 @@ void USART1_IRQHandler(void)
 
 void USART3_IRQHandler(void)
 {
-    struct usart_session *sess = &core->meter->sess;
+    struct usart_session *sess = &the_core->meter->sess;
 
     if(USART3->SR &= USART_FLAG_RXNE) {
         USART3->SR &= ~USART_FLAG_RXNE;// clear interrupt
@@ -190,7 +190,7 @@ void TIM2_IRQHandler(void)
     if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET) {
         //必须清空标志位/ /
         TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
-        core->count_tim2++;
+        the_core->count_tim2++;
         watchdog_feed();
     }
 }

@@ -15,17 +15,20 @@ unsigned char const WX_XUNDA_CMD[FLOW_HEXCMD_LEN] = {0x01, 0x04, 0x00, 0x05, 0x0
 static void flowmeter_usart_parse(struct usart_session *sess)
 {
     struct flowmeter *meter = (struct flowmeter *)((char *)sess - (size_t)(&((struct flowmeter *)0)->sess));
-    
-    if(*RFIFOP(sess, 0) == 0x01 && *RFIFOP(sess, 1) == 0x03
-        && *RFIFOP(sess, 2) == 0x04 && *(unsigned char*)RFIFOP(sess, 9) == 0xff) {
+
+    #if defined SH_FANYANG
+    if(*RFIFOP(sess, 0) == 0x01 && *RFIFOP(sess, 1) == 0x03 && *RFIFOP(sess, 2) == 0x0A) {
+    #elif defined WX_XUNDA
+    if(*RFIFOP(sess, 0) == 0x01 && *RFIFOP(sess, 1) == 0x04 && *RFIFOP(sess, 2) == 0x0A) {
+    #endif
         // update current flow total
         sprintf(meter->last_flow_total, "%.2X%.2X%.2X%.2X", *RFIFOP(sess, 3),
             *RFIFOP(sess, 4), *RFIFOP(sess, 5), *RFIFOP(sess, 6));
 
         // update current flow time
-        if (strlen(core->sim->gpstime) != 0) {
+        if (strlen(the_core->sim->gpstime) != 0) {
             struct tm tm = {0};
-            time_parse_gpstime(&tm, core->sim->gpstime, GPSTIME_LEN);
+            time_parse_gpstime(&tm, the_core->sim->gpstime, GPSTIME_LEN);
             time_add_hours(&tm, 8);
             time_to_string_cn(&tm, meter->last_flow_time, FLOW_TIME_LEN);
         }

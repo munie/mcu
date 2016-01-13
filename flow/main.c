@@ -264,6 +264,6 @@ int main(void)
     gpio_config();
     watchdog_init(4, 6250);
 
-    core_init(core);
-    while (1) core_perform(core);
+    core_init(the_core);
+    while (1) core_perform(the_core);
 }
