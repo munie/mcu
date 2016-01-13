@@ -11,7 +11,7 @@ unsigned char const CGQ_CMD[8]={0x01, 0x03, 0x00, 0x08, 0x00, 0x02, 0x45, 0xC9};
 
 struct flow_record {
     char total[CURRENT_FLOW_TOTAL_LEN + 1];
-    char time[CURRENT_FLOW_TOTAL_LEN + 1];
+    char time[CURRENT_FLOW_TIME_LEN + 1];
 };
 
 #define FLOW_RECORD_MAX (24 * 2 * 10)
@@ -35,10 +35,12 @@ static void flowmeter_usart_parse(struct usart_session *sess)
             *RFIFOP(sess, 4), *RFIFOP(sess, 5), *RFIFOP(sess, 6));
 
         // update current flow time
-        struct tm tm = {0};
-        time_parse_gpstime(&tm, _simcard.gpstime, GPSTIME_LEN);
-        time_add_hours(&tm, 8);
-        time_to_string_cn(&tm, _simcard.current_flow_time, CURRENT_FLOW_TIME_LEN);
+        if (strlen(_simcard.gpstime) != 0) {
+            struct tm tm = {0};
+            time_parse_gpstime(&tm, _simcard.gpstime, GPSTIME_LEN);
+            time_add_hours(&tm, 8);
+            time_to_string_cn(&tm, _simcard.current_flow_time, CURRENT_FLOW_TIME_LEN);
+        }
 
         // store record to flow record table
         if (flow_size - flow_pos != FLOW_RECORD_MAX && flow_size - flow_pos != -1) {

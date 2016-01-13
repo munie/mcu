@@ -23,7 +23,7 @@ int time_parse_gpstime(struct tm * restrict tm, char const *time, size_t len)
     tm->tm_hour = CTOI(time[8]) * 10 + CTOI(time[9]);
     tm->tm_mday = CTOI(time[6]) * 10 + CTOI(time[7]);
     tm->tm_mon = CTOI(time[4]) * 10 + CTOI(time[5]) - 1;
-    tm->tm_year = CTOI(time[0]) * 1000 + CTOI(time[1]) * 100 + CTOI(time[2]) * 10 + CTOI(time[3]);
+    tm->tm_year = CTOI(time[0]) * 1000 + CTOI(time[1]) * 100 + CTOI(time[2]) * 10 + CTOI(time[3]) - 1900;
 
     return 0;
 }
