@@ -73,4 +73,6 @@ void core_perform(struct core *core)
 {
     usart_perform();
     check_timer(core);
+    simcard_check_network(core->sim);
+    simcard_check_gps(core->sim);
 }

@@ -7,9 +7,6 @@
 #include <stdarg.h>
 #include "core.h"
 
-#define PowerH_GPRS  GPIO_SetBits(GPIOC,GPIO_Pin_6)     //高电平
-#define PowerL_GPRS  GPIO_ResetBits(GPIOC,GPIO_Pin_6)   //低电平
-
 // init commands of AT
 #define AT_TEST         "AT\n"
 #define AT_ECHO_CLOSE   "ATE0\n"
@@ -52,16 +49,16 @@ static void send_command(struct usart_session *sess, const char * restrict cmd, 
     delay(next);
 }
 
-static void simcard_open()
+static void poweron()
 {
-    PowerH_GPRS;
+    GPIO_SetBits(GPIOC,GPIO_Pin_6);
     delay(600);
-    PowerL_GPRS;
+    GPIO_ResetBits(GPIOC,GPIO_Pin_6);
     delay(600);
     delay(1500);
 }
 
-static void connect(struct simcard *sim)
+static void simcard_connect(struct simcard *sim)
 {
     struct usart_session *sess = &sim->sess;
     send_command(sess, AT_CG_CLASS, 1000);
@@ -72,7 +69,7 @@ static void connect(struct simcard *sim)
     usart_rfifo_skip(sess, RFIFOREST(sess));
 }
 
-static void gpsstart(struct simcard *sim)
+static void simcard_gps_start(struct simcard *sim)
 {
     struct usart_session *sess = &sim->sess;
     send_command(sess, AT_GPS_PWR, 1000);
@@ -85,7 +82,7 @@ static void simcard_usart_parse(struct usart_session *sess)
 {
     struct simcard *sim = (struct simcard *)((char *)sess - (size_t)(&((struct simcard *)0)->sess));
 
-    for (int i = sess->rdata_pos; i < sess->rdata_size; i++) {
+    for (int i = 0; i < RFIFOREST(sess); i++) {
         if (memcmp(RFIFOP(sess, i), "!A1?", 4) == 0) {
             simcard_send_msg_to_center(sim, "/flow/record?ccid=%s&csq=%s&voltage=%s&gpsn=%s&gpse=%s&flow_total=%s&time=%s\r\n",
                 sim->ccid, sim->csq, sim->voltage, sim->gpsn, sim->gpse,
@@ -114,12 +111,12 @@ void simcard_init(struct simcard *sim)
 
     send_command_base(sess, AT_POWER_DOWN, "OK", 2);
     delay(10 * 1000);
-    simcard_open();
+    poweron();
     goto redo;
 
     out:
     if (simcard_update_ccid(sim) == -1) goto redo;
-    gpsstart(sim);
+    simcard_gps_start(sim);
     return;
 }
 
@@ -139,12 +136,22 @@ void simcard_send_msg_to_center(struct simcard *sim, const char * restrict msg, 
 
     redo:
     send_command(sess, AT_CIP_SEND, 500);
-    if (memcmp(sess->rdata + sess->rdata_size - 9, "\r\nERROR\r\n", 9) == 0) {
-        connect(sim);
+    if (memcmp(RFIFOP(sess, RFIFOREST(sess)) - 9, "\r\nERROR\r\n", 9) == 0) {
+        simcard_connect(sim);
         goto redo;
     }
     send_command(sess, sess->wdata, 0);
     send_command(sess, "\x1a\r\n", 0);
+}
+
+int simcard_check_network(struct simcard *sim)
+{
+    return 0;
+}
+
+int simcard_check_gps(struct simcard *sim)
+{
+    return 0;
 }
 
 int simcard_update_ccid(struct simcard *sim)
