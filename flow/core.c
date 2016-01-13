@@ -45,7 +45,7 @@ static void flowmeter_usart_parse(struct usart_session *sess)
         // store record to flow record table
         if (flow_size - flow_pos != FLOW_RECORD_MAX && flow_size - flow_pos != -1) {
             memcpy(flow_table[flow_size].total, _simcard.current_flow_total, CURRENT_FLOW_TOTAL_LEN);
-            memcpy(flow_table[flow_size].time, _simcard.current_flow_time, CURRENT_FLOW_TOTAL_LEN);
+            memcpy(flow_table[flow_size].time, _simcard.current_flow_time, CURRENT_FLOW_TIME_LEN);
             if (++flow_size == FLOW_RECORD_MAX) flow_size = 0;
         }
     }
