@@ -11,7 +11,7 @@
 #define AT_TEST         "AT\n"
 #define AT_ECHO_CLOSE   "ATE0\n"
 #define AT_POWER_DOWN   "AT+CPOWD=1\n"
-#define AT_GPS_PWR      "AT+CGNSPWR=1\n"        // GPS¿ªµçÔ´
+#define AT_GPS_PWR      "AT+CGNSPWR=1\n"
 
 // query commands of AT
 #define AT_QUERY_CCID   "AT+CCID\n"
@@ -151,6 +151,8 @@ int simcard_check_network(struct simcard *sim)
 
 int simcard_check_gps(struct simcard *sim)
 {
+    memset(sim->gpstime, 0, GPSTIME_LEN);
+
     return 0;
 }
 

@@ -3,13 +3,13 @@
 #include "core.h"
 #include "delay.h"
 
-// core ===================================================================
-
 static struct core __core;
 struct core *the_core = &__core;
 static struct simcard __simcard;
 static struct flowmeter __flowmeter;
 static struct flow_record flow_table[FLOW_RECORD_MAX];
+
+// core ===================================================================
 
 static inline void timer_check_simcard(int count, struct simcard *sim)
 {
@@ -43,7 +43,7 @@ static inline void timer_fetch_flow_data(int count, struct flowmeter *meter)
 
 static inline void timer_send_flow_record(int count, struct simcard *sim, struct flowmeter *meter)
 {
-   // 30 mins : send flow record
+    // 30 mins : send flow record
     if (count % 1800 == 180) {
         // CAUTION! maybe loop endlessly
         while (meter->flow_size != meter->flow_pos) {
@@ -80,11 +80,11 @@ void core_init(struct core *core)
 void core_perform(struct core *core)
 {
     usart_perform();
-    
+
     timer_check_simcard(core->count_tim2, core->sim);
     timer_send_alive_packet(core->count_tim2, core->sim);
     timer_fetch_flow_data(core->count_tim2, core->meter);
     timer_send_flow_record(core->count_tim2, core->sim, core->meter);
-    
+
     if (core->count_tim2 > 3600 * 24) core->count_tim2 = 0;
 }
