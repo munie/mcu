@@ -151,8 +151,6 @@ int simcard_check_network(struct simcard *sim)
 
 int simcard_check_gps(struct simcard *sim)
 {
-    memset(sim->gpstime, 0, GPSTIME_LEN);
-
     return 0;
 }
 

@@ -75,7 +75,7 @@ int usart_add(struct usart_session *sess)
             return 0;
         }
     }
-    
+
     return -1;
 }
 
@@ -94,7 +94,7 @@ void usart_perform()
     for (int i = 0; i < USART_SESSION_MAX; i++) {
         if (usart_table[i] == NULL)
             continue;
-        
+
         if (RFIFOREST(usart_table[i]) > 0) {
             delay(200);
             if (usart_table[i]->usart_parse != NULL)

@@ -25,8 +25,8 @@ static inline void timer_check_simcard(int count, struct simcard *sim)
 
 static inline void timer_send_alive_packet(int count, struct simcard *sim)
 {
-    // 10 mins : send alive packet
-    if (count % 600 == 60) {
+    // 5 mins : send alive packet
+    if (count % 300 == 60) {
         simcard_send_msg_to_center(sim, "/flow/alive?ccid=%s\r\n", sim->ccid);
         delay(1000);
     }
@@ -59,6 +59,7 @@ static inline void timer_send_flow_record(int count, struct simcard *sim, struct
             char *tmp = strstr(RFIFOP((&sim->sess), 0), "*OK#");
             if (tmp == NULL || tmp > RFIFOP((&sim->sess), RFIFOREST((&sim->sess))))
                 break;
+            usart_rfifo_skip(&sim->sess, RFIFOREST((&sim->sess)));
 
             // update flow_pos
             if (++meter->flow_pos == FLOW_RECORD_MAX) meter->flow_pos = 0;
