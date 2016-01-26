@@ -2,6 +2,7 @@
 
 #include "usart.h"
 #include "delay.h"
+#include "util.h"
 
 // usart_session ===============================================================
 
@@ -26,6 +27,20 @@ void usart_rfifo_skip(struct usart_session *sess, size_t len)
         sess->rdata_pos = sess->rdata_size;
     else
         sess->rdata_pos += len;
+}
+
+void usart_rfifo_skip_all(struct usart_session *sess)
+{
+    usart_rfifo_skip(sess, RFIFOREST(sess));
+}
+
+void usart_rfifo_skip_windows_line(struct usart_session *sess)
+{
+    size_t len = windows_line_length(RFIFOP(sess, 0));
+    if (len == 0)
+        usart_rfifo_skip_all(sess);
+    else
+        usart_rfifo_skip(sess, len);
 }
 
 void usart_rfifo_flush(struct usart_session *sess)
@@ -89,7 +104,7 @@ void usart_del(struct usart_session *sess)
     }
 }
 
-void usart_perform()
+void usart_exec()
 {
     for (int i = 0; i < USART_SESSION_MAX; i++) {
         if (usart_table[i] == NULL)

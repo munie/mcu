@@ -43,7 +43,7 @@ static void flowmeter_usart_parse(struct usart_session *sess)
         memcpy(record->time, meter->flow_table->time, FLOW_TIME_LEN);
         list_add_tail(&record->node, &meter->flow_table->node);
     }
-    usart_rfifo_skip(sess, RFIFOREST(sess));
+    usart_rfifo_skip_all(sess);
 }
 
 void flowmeter_init(struct flowmeter *meter)

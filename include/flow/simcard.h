@@ -28,8 +28,7 @@ extern void simcard_final(struct simcard *sim);
 extern void simcard_send_msg_to_center(struct simcard *sim, const char * restrict msg, ...);
 extern int simcard_check_network(struct simcard *sim);
 extern int simcard_check_gps(struct simcard *sim);
-extern int simcard_update_ccid(struct simcard *sim);
-extern int simcard_update_csq(struct simcard *sim);
-extern int simcard_update_gps(struct simcard *sim);
+extern void simcard_update_csq(struct simcard *sim);
+extern void simcard_update_gps(struct simcard *sim);
 
 #endif

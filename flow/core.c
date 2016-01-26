@@ -78,9 +78,9 @@ void core_init(struct core *core)
     flowmeter_init(core->meter);
 }
 
-void core_perform(struct core *core)
+void core_exec(struct core *core)
 {
-    usart_perform();
+    usart_exec();
 
     timer_check_simcard(core->count_tim2, core->sim);
     timer_send_alive_packet(core->count_tim2, core->sim);

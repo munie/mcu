@@ -1,8 +1,10 @@
 // util.c
 
+#include "util.h"
 #include <stdbool.h>
 #include <time.h>
 #include <stdio.h>
+#include <string.h>
 
 #define CTOI(c) (c - 0x30)
 #define ITOC(c) (c + 0x30)
@@ -82,4 +84,24 @@ void time_to_string_cn(const struct tm *tm, char * restrict dest, size_t size)
     snprintf(dest, size, "%d-%d-%d %d:%d:%d",
         tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
         tm->tm_hour, tm->tm_min, tm->tm_sec);
+}
+
+size_t unix_line_length(const char *str)
+{
+    for (int i = 0; i < strlen(str); i++) {
+        if (str[i] == '\n')
+            return ++i;
+    }
+
+    return 0;
+}
+
+size_t windows_line_length(const char *str)
+{
+    for (int i = 0; i < strlen(str); i++) {
+        if (str[i] == '\n' && str[i-1] == '\r')
+            return ++i;
+    }
+
+    return 0;
 }
