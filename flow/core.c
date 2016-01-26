@@ -2,12 +2,12 @@
 
 #include "core.h"
 #include "delay.h"
+#include <stdlib.h>
 
 static struct core __core;
 struct core *the_core = &__core;
 static struct simcard __simcard;
 static struct flowmeter __flowmeter;
-static struct flow_record flow_table[FLOW_RECORD_MAX];
 
 // core ===================================================================
 
@@ -46,13 +46,12 @@ static inline void timer_send_flow_record(int count, struct simcard *sim, struct
     // 30 mins : send flow record
     if (count % 1800 == 180) {
         // CAUTION! maybe loop endlessly
-        while (meter->flow_size != meter->flow_pos) {
+        while (!list_empty(&meter->flow_table->node)) {
+            struct flow_record *record = list_entry(meter->flow_table->node.next, struct flow_record, node);
             // send flow record
-            simcard_send_msg_to_center(sim, "/flow/record?ccid=%s&csq=%s&voltage=%s&gpsn=%s&gpse=%s&flow_total=%s&time=%s&pos=%d-%d&response=*OK#\r\n",
+            simcard_send_msg_to_center(sim, "/flow/record?ccid=%s&csq=%s&voltage=%s&gpsn=%s&gpse=%s&flow_total=%s&time=%s&size=%d&response=*OK#\r\n",
                 sim->ccid, sim->csq, sim->voltage, sim->gpsn, sim->gpse,
-                meter->flow_table[meter->flow_pos].total,
-                meter->flow_table[meter->flow_pos].time,
-                meter->flow_pos, meter->flow_size);
+                record->total, record->time, list_size(&meter->flow_table->node));
 
             // return if not received *OK# in 10 sec
             delay(10000);
@@ -61,8 +60,9 @@ static inline void timer_send_flow_record(int count, struct simcard *sim, struct
                 break;
             usart_rfifo_skip(&sim->sess, RFIFOREST((&sim->sess)));
 
-            // update flow_pos
-            if (++meter->flow_pos == FLOW_RECORD_MAX) meter->flow_pos = 0;
+            // delete record
+            list_del(&record->node);
+            free(record);
         }
     }
 }
@@ -75,7 +75,7 @@ void core_init(struct core *core)
 
     // flow meter init
     core->meter = &__flowmeter;
-    flowmeter_init(core->meter, flow_table);
+    flowmeter_init(core->meter);
 }
 
 void core_perform(struct core *core)
